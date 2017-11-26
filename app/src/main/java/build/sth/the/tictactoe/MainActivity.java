@@ -3,6 +3,7 @@ package build.sth.the.tictactoe;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -10,233 +11,103 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private boolean playerOneTurn = true;
     private static final String PLAYER_ONE_TURN = "Player 1 turn";
     private static final String PLAYER_TWO_TURN = "Player 2 turn";
     private static final String PLAYER_ONE_WINS = "Player 1 Wins";
     private static final String PLAYER_TWO_WINS = "Player 2 wins";
+    private static final String GAME_DRAWN = "Game Drawn";
     private static final int ANIMATION_DURATION = 1000;
     TextView tvMessage;
-    boolean gameOver = false;
+    GridLayout gridLayout;
+    Button btnRestart;
+    int countTurn = 0;
 
-    private boolean checkHorizonalMatching(final int boxId , final int color) {
-        switch (boxId) {
+    int[] gameState = {0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 };
 
-            /**
-             * Create scenario for each box and then also create vertical and diagnol scenarios
-             */
-            case R.id.iv11:
-                ImageView iv12 = (ImageView) findViewById(R.id.iv12);
-                ImageView iv13 = (ImageView) findViewById(R.id.iv13);
-                if(!iv12.isClickable() && !iv13.isClickable() && (int) iv12.getTag() == color && (int) iv13.getTag() == color)
-                {
-                    return true;
-                }
-                break;
+    /**
+     * 1 for player 1: red
+     * 2 for player 2: yellow
+     */
+    private int gameTurn = 1;
+
+    private int[][] winCombinations = {{0 , 1 , 2} , {3 , 4 , 5} , {6 , 7 , 8 } , {0 , 3 , 6},
+            {1 , 4 , 7} , {2 , 5 , 8} , {0, 4 , 8} , {2 , 4, 6}} ;
+
+    private boolean checkWinner() {
+
+        for(int[] combination: winCombinations) {
+            if(gameState[combination[0]] == gameTurn && gameState[combination[1]] == gameTurn
+                    && gameState[combination[2]] == gameTurn && gameState[combination[0]] != 0){
+                gridLayout.setAlpha(0.2f);
+                btnRestart.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
+                btnRestart.animate().rotation(3600).setDuration(ANIMATION_DURATION);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkDraw() {
+        if(countTurn == 9) {
+            gridLayout.setAlpha(0.2f);
+            btnRestart.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
+            btnRestart.animate().rotation(3600).setDuration(ANIMATION_DURATION);
+            return true;
         }
 
         return false;
-
+    }
+    public void restart(View view) {
+        this.recreate();
     }
 
     public void play(View view) {
-        if(gameOver) {
-            return ;
-        }
+        ImageView iv = (ImageView) view;
+        countTurn++;
 
-        switch (view.getId()) {
-            case R.id.iv11:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    if(checkHorizonalMatching(R.id.iv11 , R.drawable.red)) {
-                        tvMessage.setText(PLAYER_ONE_WINS);
-                        gameOver = true;
-                        return;
-                    }
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
+        if(gameTurn == 1) {
+            iv.setImageResource(R.drawable.red);
+            iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
+            iv.setClickable(false);
 
-            case R.id.iv12:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
+            gameState[Integer.valueOf((String)iv.getTag())] = gameTurn;
+            if (checkWinner()) {
+                tvMessage.setText(PLAYER_ONE_WINS);
+                return;
+            }
 
-            case R.id.iv13:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
+            if (checkDraw()) {
+                tvMessage.setText(GAME_DRAWN);
+                return;
+            }
+            tvMessage.setText(PLAYER_TWO_TURN);
+            gameTurn = 2;
+        } else {
+            iv.setImageResource(R.drawable.yellow);
+            iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
+            iv.setClickable(false);
+            gameState[Integer.valueOf((String)iv.getTag())] = gameTurn;
+            if (checkWinner()) {
+                tvMessage.setText(PLAYER_TWO_WINS);
+                return;
+            }
 
-            case R.id.iv21:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
+            if (checkDraw()) {
+                tvMessage.setText(GAME_DRAWN);
+                return;
+            }
 
-            case R.id.iv22:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
-
-            case R.id.iv23:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
-
-            case R.id.iv31:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
-
-            case R.id.iv32:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
-
-            case R.id.iv33:
-                if (playerOneTurn) {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.red);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.red);
-                    tvMessage.setText(PLAYER_TWO_TURN);
-                    playerOneTurn = false;
-                } else {
-                    ImageView iv =(ImageView) view;
-                    iv.setImageResource(R.drawable.yellow);
-                    iv.animate().alpha(1.0f).setDuration(ANIMATION_DURATION);
-                    iv.setClickable(false);
-                    iv.setTag(R.drawable.yellow);
-                    tvMessage.setText(PLAYER_ONE_TURN);
-                    playerOneTurn = true;
-                }
-                break;
+            tvMessage.setText(PLAYER_ONE_TURN);
+            gameTurn = 1;
         }
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tvMessage = (TextView) findViewById(R.id.tvMessage);
+        gridLayout = (GridLayout) findViewById(R.id.gvBoard);
+        btnRestart = (Button) findViewById(R.id.btnRestart);
     }
 }
